@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpBibTex", "SharpBibTex\SharpBibTex.csproj", "{CF825C27-EFB2-4D10-A094-BFABACFD069F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BibTexLib", "BibTexLib\BibTexLib.csproj", "{777A468C-EFEB-4A8C-A136-F06788BA4FEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BibTexTest", "BibTexTest\BibTexTest.csproj", "{D4B84F16-4C06-47C5-B738-5A83A3222AC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BibTextLibConsoleApp", "BibTextLibConsoleApp\BibTextLibConsoleApp.csproj", "{17D3A893-0D85-40C2-9FCB-E0F7CE71246B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CF825C27-EFB2-4D10-A094-BFABACFD069F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF825C27-EFB2-4D10-A094-BFABACFD069F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF825C27-EFB2-4D10-A094-BFABACFD069F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF825C27-EFB2-4D10-A094-BFABACFD069F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{777A468C-EFEB-4A8C-A136-F06788BA4FEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{777A468C-EFEB-4A8C-A136-F06788BA4FEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{777A468C-EFEB-4A8C-A136-F06788BA4FEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{777A468C-EFEB-4A8C-A136-F06788BA4FEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4B84F16-4C06-47C5-B738-5A83A3222AC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4B84F16-4C06-47C5-B738-5A83A3222AC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4B84F16-4C06-47C5-B738-5A83A3222AC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4B84F16-4C06-47C5-B738-5A83A3222AC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17D3A893-0D85-40C2-9FCB-E0F7CE71246B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17D3A893-0D85-40C2-9FCB-E0F7CE71246B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17D3A893-0D85-40C2-9FCB-E0F7CE71246B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17D3A893-0D85-40C2-9FCB-E0F7CE71246B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
