@@ -18,6 +18,15 @@ namespace BibTexLib.Model
             set { entrytrype = value; }
         }
 
+        private string internalkey;
+
+        public string InternalKey
+        {
+            get { return internalkey; }
+            set { internalkey = value; }
+        }
+
+
         public Dictionary<string, string> Tags
         {
             get { return tags; }

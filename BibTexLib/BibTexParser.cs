@@ -1,5 +1,6 @@
-﻿using BibTexLib.Model;
-using System.Linq;
+﻿using BibTexLib.Exceptions;
+using BibTexLib.Model;
+using System.Text.RegularExpressions;
 
 namespace BibTexLib
 {
@@ -9,113 +10,7 @@ namespace BibTexLib
         {
         }
 
-        public Bibliography Parse(string bibtexstring)
-        {
-            // TODO - Add Comment handling TODO - Add abbreviation handlings TODO - Add proper
-            // exception handling
-            string tempparser = bibtexstring.Replace("\r", "").Replace("\n", "");
-            Bibliography bib = new Bibliography();
-
-            bool endofstring = false;
-            while (!endofstring)
-            {
-                var token = tempparser.First();
-
-                switch (token)
-                {
-                    case '@':
-                        //Section identified
-                        string sectiontype = tempparser.Substring(1, tempparser.IndexOf('{') - 1);
-
-                        switch (sectiontype)
-                        {
-                            case "STRING":
-                                break;
-
-                            case "PREAMBLE":
-                                break;
-
-                            case "COMMENT":
-                                break;
-
-                            default:
-                                // An actual entry 
-                                Entry entry = new Entry();
-                                entry.EntryType = sectiontype;
-                                string content = GetContentBetweenOpenCloseBraces(tempparser, '{', '}');
-                                string entrystring = tempparser.Substring(0, tempparser.IndexOf('{') + 1) + content + "}";
-                                bool proccontent = false;
-                                string tempcontent = content;
-                                while (!proccontent)
-                                {
-                                    if (tempcontent.Length == 0)
-                                    {
-                                        proccontent = true;
-                                        break;
-                                    }
-                                    string tag = string.Empty;
-                                    int commaindex = tempcontent.IndexOf(',');
-                                    int braceindex = tempcontent.IndexOf('{');
-                                    int markerindex = 0;
-                                    if (commaindex > 0 && commaindex < braceindex)
-                                    {
-                                        tag = tempcontent.Substring(0, commaindex);
-
-                                        markerindex = commaindex + 1;
-                                    }
-                                    else
-                                    {
-                                        tag = tempcontent.Substring(0, tempcontent.IndexOf('}') + 1);
-                                        markerindex = tempcontent.IndexOf(',', tempcontent.IndexOf('}')) + 1;
-                                        if (markerindex == 0) markerindex = tempcontent.Length;
-                                    }
-
-                                    if (!tag.Equals(string.Empty))
-                                    {
-                                        var tagitems = tag.Split('=');
-
-                                        var tagkey = tagitems[0].Trim();
-                                        var tagvalue = tagitems.Length > 1 ? tagitems[1].Replace("{", "").Replace("}", "") : "";
-
-                                        // Todo Validate tag and Value
-
-                                        entry.Tags.Add(tagkey, tagvalue);
-                                    }
-                                    tempcontent = tempcontent.Substring(markerindex);
-                                }
-                                bib.Entries.Add(entry);
-                                tempparser = tempparser.Substring(entrystring.Length, tempparser.Length - entrystring.Length);
-                                break;
-                        }
-
-                        break;
-
-                    case '%':
-                        // Comment token 
-                        tempparser = tempparser.Substring(1);
-                        int endcommentindex = tempparser.IndexOf('%'); // Check for close
-                        string comment = tempparser.Substring(0, endcommentindex);
-                        bib.Comments.Add(comment);
-                        tempparser = tempparser.Substring(endcommentindex + 1);
-                        break;
-
-                    case ' ':
-                        //Space
-                        tempparser = tempparser.Substring(1);
-                        break;
-
-                    default:
-                        tempparser = string.Empty;
-                        break;
-                }
-
-                if (tempparser.Length == 0) endofstring = true;
-            }
-
-            return bib;
-        }
-
-        private string GetContentBetweenOpenCloseBraces(string toprocess, char openbrace, char closebrace)
+        public string GetContentBetweenOpenCloseBraces(string toprocess, char openbrace, char closebrace)
         {
             int openb = 0;
             bool open = false;
@@ -128,6 +23,7 @@ namespace BibTexLib
                     openb++;
                     open = true;
                 }
+
                 if (toprocess[i].Equals(closebrace)) openb--;
 
                 if (open && openb == 0)
@@ -138,6 +34,87 @@ namespace BibTexLib
                 }
             }
             return retval;
+        }
+
+        public Bibliography Parse(string bibtexstring)
+        {
+            // TODO - Add Comment handling TODO - Add abbreviation handlings TODO - Add proper 
+            Bibliography bib = new Bibliography();
+            // exception handling 
+            string tempparser = bibtexstring.Replace("\r", "").Replace("\n", "");
+
+            int index = 0;
+
+            while (tempparser.Length > index + 1)
+            {
+                switch (tempparser[index])
+                {
+                    case '@':
+                        // Entity Detected 
+                        int openindex = tempparser.IndexOf('{', index);
+                        string entityname = tempparser.Substring(index + 1, openindex - index - 1);
+                        if (entityname.Equals(string.Empty)) throw new BibTexParseException("Entry malformed, No entity name specified");
+
+                        switch (entityname.ToLower())
+                        {
+                            case "string":
+                                // TODO - handle variables and process once entity is found. 
+                                break;
+
+                            case "preamble":
+                                // Ignore preamble as is not relevant for MS WORD 
+                                break;
+
+                            default:
+                                Entry entry = new Entry();
+                                entry.EntryType = entityname;
+
+                                string entitycontents = GetContentBetweenOpenCloseBraces(tempparser.Substring(openindex), '{', '}');
+
+                                ProcessEntry(openindex, entityname, entry, entitycontents);
+
+                                bib.Entries.Add(entry);
+
+                                int closeindex = openindex + entitycontents.Length;
+                                index = closeindex;
+
+                                break;
+                        }
+                        break;
+
+                    default:
+                        index++;
+                        break;
+                }
+            }
+
+            return bib;
+        }
+
+        private static void ProcessEntry(int openindex, string entityname, Entry entry, string entitycontents)
+        {
+            string matchpattern = "[,]?[A-Za-z0-9]*[ ]?[=]";
+            if (entitycontents.Equals(string.Empty)) throw new BibTexParseException(string.Format("Entry malformed, no contents for entry found for entry {0} - position {1}", entityname, openindex));
+
+            bool internalkeycheck = false;
+            var matches = Regex.Matches(entitycontents, matchpattern);
+            for (int i = 0; i < matches.Count; i++)
+            {
+                if (!internalkeycheck)
+                {
+                    internalkeycheck = true;
+                    if (matches[i].Index > 0) entry.InternalKey = entitycontents.Substring(0, matches[i].Index).Trim();
+                }
+
+                int startindex = matches[i].Index + 1;
+                int endindex = (i + 1 >= matches.Count ? entitycontents.Length : matches[i + 1].Index);
+
+                string tagtext = entitycontents.Substring(startindex, endindex - startindex);
+                var splittext = tagtext.Split('=');
+                string key = splittext[0].Trim();
+                string val = splittext.Length > 1 ? splittext[1].Trim() : string.Empty;
+                entry.Tags.Add(key, val);
+            }
         }
     }
 }

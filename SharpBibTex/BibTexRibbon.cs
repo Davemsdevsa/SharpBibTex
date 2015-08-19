@@ -1,6 +1,7 @@
 ﻿using BibTexLib;
 using BibTexLib.Model;
 using Microsoft.Office.Tools.Ribbon;
+using System;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -18,6 +19,58 @@ namespace SharpBibTex
             {
                 ProcessBib(Clipboard.GetText());
             }
+        }
+
+        private void cmdFromFile_Click(object sender, RibbonControlEventArgs e)
+        {
+            var temp = Globals.ThisAddIn.Application.Bibliography.Sources[1];
+            var xml = temp.XML;
+        }
+
+        private string GetWordSourceType(string entryType)
+        {
+            string returnvalue = string.Empty;
+            switch (entryType.ToLower())
+            {
+                case "book":
+                    returnvalue = "Book";
+                    break;
+
+                case "inbook":
+                case "booklet":
+                case "incollection":
+                    returnvalue = "BookSection";
+                    break;
+
+                case "article":
+                    returnvalue = "JournalArticle";
+                    break;
+
+                case "inproceedings":
+                case "conference":
+                case "proceedings":
+                case "collection":
+                    returnvalue = "ConferenceProceedings";
+                    break;
+
+                case "techreport":
+                case "manual":
+                case "mastersthesis":
+                case "phdthesis":
+                case "unpublished":
+                    returnvalue = "Report";
+                    break;
+
+                case "misc":
+                    returnvalue = "Misc";
+                    break;
+
+                default:
+
+                    break;
+            }
+
+            return returnvalue;
         }
 
         private void ProcessBib(string bib)
@@ -47,51 +100,53 @@ namespace SharpBibTex
 
                 foreach (Entry entry in retbib.Entries)
                 {
-                    sourceType = entry.EntryType;
+                    sourceType = GetWordSourceType(entry.EntryType);
 
+                    //TODO - Clean this up
+                    //TODO - Add Validation Rules
                     if (entry.Tags.ContainsKey("title"))
                     {
-                        title = entry.Tags["title"];
+                        title = entry.Tags["title"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("year"))
                     {
-                        year = entry.Tags["year"];
+                        year = entry.Tags["year"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("city"))
                     {
-                        year = entry.Tags["city"];
+                        year = entry.Tags["city"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("publisher"))
                     {
-                        year = entry.Tags["publisher"];
+                        year = entry.Tags["publisher"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("journal"))
                     {
-                        journal = entry.Tags["journal"];
+                        journal = entry.Tags["journal"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("volume"))
                     {
-                        volume = entry.Tags["volume"];
+                        volume = entry.Tags["volume"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("issue"))
                     {
-                        issue = entry.Tags["issue"];
+                        issue = entry.Tags["issue"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("doi"))
                     {
-                        doi = entry.Tags["doi"];
+                        doi = entry.Tags["doi"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     if (entry.Tags.ContainsKey("pages"))
                     {
-                        pages = entry.Tags["pages"];
+                        pages = entry.Tags["pages"].Replace("{", "").Replace("}", "").Trim();
                     }
 
                     string authorsxml = string.Empty;
@@ -99,7 +154,7 @@ namespace SharpBibTex
 
                     if (entry.Tags.ContainsKey("author"))
                     {
-                        authors = entry.Tags["author"];
+                        authors = entry.Tags["author"].Replace("{", "").Replace("}", "").Trim();
 
                         var authorslist = authors.Replace("and", ";").Split(';');
                         bool isFirst = true;
@@ -122,24 +177,25 @@ namespace SharpBibTex
                     tag = authortag + Globals.ThisAddIn.Application.ActiveDocument.Bibliography.GenerateUniqueTag();
                     string guid = System.Guid.NewGuid().ToString();
                     xml =
-                    "<b:Source>" +
-                        "<b:Tag>" + tag + "</b:Tag>" +
-                        "<b:SourceType>" + sourceType + "</b:SourceType>" +
-                        "<b:Guid>" + guid + "</b:Guid>" +
-                        "<b:LUID>0</b:LUID>" +
-                        "<b:Author><b:NameList>" +
-                            authorsxml +
-                        "</b:NameList></b:Author>" +
-                        "<b:Title>" + title + "</b:Title>" +
-                        "<b:Year>" + year + "</b:Year>" +
-                        "<b:City>" + city + "</b:City>" +
-                        "<b:Journal>" + journal + "</b:Journal>" +
-                        "<b:Volume>" + volume + "</b:Volume>" +
-                        "<b:Issue>" + issue + "</b:Issue>" +
-                        "<b:Pages>" + pages + "</b:Pages>" +
-                        "<b:DOI>" + doi + "</b:DOI>" +
-                        "<b:Publisher>" + publisher + "</b:Publisher>"+
-                    "</b:Source>";
+
+                        "<b:Source xmlns:b=\"http://schemas.openxmlformats.org/officeDocument/2006/bibliography\">" +
+                            "<b:Tag>" + tag + "</b:Tag>" +
+                            "<b:SourceType>" + sourceType + "</b:SourceType>" +
+                            "<b:Guid>" + guid + "</b:Guid>" +
+                            "<b:LUID>0</b:LUID>" +
+                            "<b:Author><b:Author><b:NameList>" +
+                                authorsxml +
+                            "</b:NameList></b:Author></b:Author>" +
+                            "<b:Title>" + title + "</b:Title>" +
+                            "<b:Year>" + year + "</b:Year>" +
+                            "<b:City>" + city + "</b:City>" +
+                            "<b:Journal>" + journal + "</b:Journal>" +
+                            "<b:Volume>" + volume + "</b:Volume>" +
+                            "<b:Issue>" + issue + "</b:Issue>" +
+                            "<b:Pages>" + pages + "</b:Pages>" +
+                            "<b:DOI>" + doi + "</b:DOI>" +
+                            "<b:Publisher>" + publisher + "</b:Publisher>" +
+                        "</b:Source>";
 
                     Globals.ThisAddIn.Application.ActiveDocument.Bibliography.Sources.Add(xml);
                 }
@@ -147,12 +203,6 @@ namespace SharpBibTex
             catch
             {
             }
-        }
-
-        private void cmdFromFile_Click(object sender, RibbonControlEventArgs e)
-        {
-            var temp = Globals.ThisAddIn.Application.Bibliography.Sources[1];
-            var xml = temp.XML;
         }
     }
 }

@@ -35,5 +35,35 @@ namespace BibTexTest
         public void SampleSingleBibTexTest()
         {
         }
+
+        [TestMethod]
+        public void BraceCheckingTestSingleBrace()
+        {
+            string teststring = "{This is the content}";
+            string expectedString = "This is the content";
+
+            string actualstring = "";
+
+            BibTexParser parser = new BibTexParser();
+
+            actualstring = parser.GetContentBetweenOpenCloseBraces(teststring, '{', '}');
+
+            Assert.AreEqual(expectedString, actualstring);
+        }
+
+        [TestMethod]
+        public void BraceCheckingTestMultipleBrace()
+        {
+            string teststring = "{This is {the} content}";
+            string expectedString = "This is {the} content";
+
+            string actualstring = "";
+
+            BibTexParser parser = new BibTexParser();
+
+            actualstring = parser.GetContentBetweenOpenCloseBraces(teststring, '{', '}');
+
+            Assert.AreEqual(actualstring, expectedString);
+        }
     }
 }
