@@ -1,5 +1,6 @@
 ﻿using BibTexLib.Exceptions;
 using BibTexLib.Model;
+using System;
 using System.Text.RegularExpressions;
 
 namespace BibTexLib
@@ -10,6 +11,20 @@ namespace BibTexLib
         {
         }
 
+        /// <summary>
+        /// Function to detect content between matching braces 
+        /// </summary>
+        /// <param name="toprocess">
+        /// This is the string that should be processed 
+        /// </param>
+        /// <param name="openbrace">
+        /// This is the character that signifies an open brace 
+        /// </param>
+        /// <param name="closebrace">
+        /// This is the character that signifies a close brace 
+        /// </param>
+        /// <returns>
+        /// </returns>
         public string GetContentBetweenOpenCloseBraces(string toprocess, char openbrace, char closebrace)
         {
             int openb = 0;
@@ -71,7 +86,7 @@ namespace BibTexLib
 
                                 string entitycontents = GetContentBetweenOpenCloseBraces(tempparser.Substring(openindex), '{', '}');
 
-                                ProcessEntry(openindex, entityname, entry, entitycontents);
+                                ProcessEntry(entityname, entry, entitycontents);
 
                                 bib.Entries.Add(entry);
 
@@ -91,29 +106,67 @@ namespace BibTexLib
             return bib;
         }
 
-        private static void ProcessEntry(int openindex, string entityname, Entry entry, string entitycontents)
+        /// <summary>
+        /// This is the process 
+        /// </summary>
+        /// <param name="openindex">
+        /// </param>
+        /// <param name="entityname">
+        /// </param>
+        /// <param name="entry">
+        /// </param>
+        /// <param name="entitycontents">
+        /// </param>
+        private void ProcessEntry(string entityname, Entry entry, string entitycontents)
         {
-            string matchpattern = "[,]?[A-Za-z0-9]*[ ]?[=]";
-            if (entitycontents.Equals(string.Empty)) throw new BibTexParseException(string.Format("Entry malformed, no contents for entry found for entry {0} - position {1}", entityname, openindex));
-
-            bool internalkeycheck = false;
-            var matches = Regex.Matches(entitycontents, matchpattern);
-            for (int i = 0; i < matches.Count; i++)
+            if (entitycontents.Equals(string.Empty)) throw new BibTexParseException(string.Format("Entry malformed, no contents for entry found for entry {0}", entityname));
+            bool internalKeySet = false;
+            // Process all tags and validate based on entity type 
+            int index = 0;
+            int previousentityindex = 0;
+            int braces = 0;
+            while (index < entitycontents.Length)
             {
-                if (!internalkeycheck)
+                //Check if we have a valid entity, ends in ',' or end of the string
+                if (entitycontents[index].Equals(',') && braces == 0)
                 {
-                    internalkeycheck = true;
-                    if (matches[i].Index > 0) entry.InternalKey = entitycontents.Substring(0, matches[i].Index).Trim();
+                    // Handle entity 
+                    string entity = entitycontents.Substring(previousentityindex, index - previousentityindex);
+                    entity = entity.Trim(); // Clear wrapped whitespace
+                    if (entity.Contains("="))
+                    {
+                        //Key Value Pair
+                        var kv = entity.Split(new char[] { '=' }, 2);
+                        string key = kv[0].Trim();
+                        string value = kv[1].Trim();
+                        if (!value.Trim().Equals(string.Empty))
+                        {
+                            //Dont add the key if it has no data
+                            if (value.Contains("{"))
+                            {
+                                value = GetContentBetweenOpenCloseBraces(value, '{', '}').Trim();
+                            }
+
+                            entry.Tags.Add(key, value);
+                        }
+                    }
+                    else
+                    {
+                        //Internal Key
+                        if (!internalKeySet && !entity.Equals(string.Empty))
+                        {
+                            entry.InternalKey = entity;
+                            internalKeySet = true;
+                        }
+                    }
+
+                    previousentityindex = index + 1;
                 }
 
-                int startindex = matches[i].Index + 1;
-                int endindex = (i + 1 >= matches.Count ? entitycontents.Length : matches[i + 1].Index);
+                if (entitycontents[index].Equals('{')) braces++;
+                if (entitycontents[index].Equals('}')) braces--;
 
-                string tagtext = entitycontents.Substring(startindex, endindex - startindex);
-                var splittext = tagtext.Split('=');
-                string key = splittext[0].Trim();
-                string val = splittext.Length > 1 ? splittext[1].Trim() : string.Empty;
-                entry.Tags.Add(key, val);
+                index++;
             }
         }
     }
