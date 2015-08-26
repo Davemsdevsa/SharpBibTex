@@ -2,6 +2,7 @@
 using BibTexLib.Model;
 using Microsoft.Office.Tools.Ribbon;
 using System;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -23,8 +24,29 @@ namespace SharpBibTex
 
         private void cmdFromFile_Click(object sender, RibbonControlEventArgs e)
         {
+            Stream myStream;
             var temp = Globals.ThisAddIn.Application.Bibliography.Sources[1];
             var xml = temp.XML;
+
+            OpenFileDialog file = new OpenFileDialog();
+            file.Filter = "BibTex Files (*.bib) | *.bib | All Files(*.*) | *.* ";
+            file.RestoreDirectory = true;
+
+            if (file.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    if ((myStream = file.OpenFile()) != null)
+                    {
+                        string bibcontents = new StreamReader(myStream).ReadToEnd();
+                        ProcessBib(bibcontents);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("An error has occured opening the file", "BibTex Error");
+                }
+            }
         }
 
         private string GetWordSourceType(string entryType)

@@ -58,6 +58,7 @@
             // 
             // cmdButton
             // 
+            this.cmdButton.Image = global::SharpBibTex.Properties.Resources.PasteIcon;
             this.cmdButton.Label = "Clipboard";
             this.cmdButton.Name = "cmdButton";
             this.cmdButton.ShowImage = true;
@@ -65,6 +66,7 @@
             // 
             // cmdFromFile
             // 
+            this.cmdFromFile.Image = global::SharpBibTex.Properties.Resources.FolderIcon;
             this.cmdFromFile.Label = "From File";
             this.cmdFromFile.Name = "cmdFromFile";
             this.cmdFromFile.ShowImage = true;
